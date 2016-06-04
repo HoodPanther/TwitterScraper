@@ -23,10 +23,10 @@ ids = ['%23LNKD']  # enter your search terms
 
 # Read twitter app authentications
 secrets = open("secrets.txt").readlines()
-app_key = secrets[0].split("=")[1]
-app_secret = secrets[1].split("=")[1]
-oauth_token = secrets[2].split("=")[1]
-oauth_token_secret = secrets[3].split("=")[1]
+app_key = secrets[0].split("=")[1].rstrip("\n")
+app_secret = secrets[1].split("=")[1].rstrip("\n")
+oauth_token = secrets[2].split("=")[1].rstrip("\n")
+oauth_token_secret = secrets[3].split("=")[1].rstrip("\n")
 
 print app_key
 print app_secret
