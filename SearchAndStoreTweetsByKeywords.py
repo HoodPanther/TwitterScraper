@@ -28,12 +28,6 @@ app_secret = secrets[1].split("=")[1].rstrip("\n")
 oauth_token = secrets[2].split("=")[1].rstrip("\n")
 oauth_token_secret = secrets[3].split("=")[1].rstrip("\n")
 
-print app_key
-print app_secret
-print oauth_token
-print oauth_token_secret
-
-
 # Twitter application name: DeMattiaScrapeTwitter
 t = Twython(app_key=app_key,
             app_secret=app_secret,
