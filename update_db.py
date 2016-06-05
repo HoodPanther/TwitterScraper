@@ -1,9 +1,18 @@
 import matplotlib
 import sqlalchemy
 import pandas as pd
-matplotlib.use('AGG')
 import utils
 import os
+from datetime import datetime, timedelta
+matplotlib.use('AGG')
+
+
+def save_plot(d, file_name):
+    plot = d.plot()
+    plot.legend(loc="best", fancybox=True, framealpha=0.5)
+    fig = plot.get_figure()
+    fig.savefig('static/'+file_name+'.png')
+
 
 db_names = ["LNKD", "GILD"]
 searches = ['%23LNKD OR LNKD OR LinkedIn', '%23GILD OR GILD OR Gilead Sciences']
@@ -13,23 +22,16 @@ words = ["up", "down", "good", "bad", "buy", "sell", "hold", "positive", "negati
 
 for db_name, search in zip(db_names, searches):
     os.system("python SearchAndStoreTweetsByKeywords.py "+db_name+" "+search)
-    # d = utils.build_dataframe(db_name, words)
-    utils.fill_counts(db_name, words, "Count_"+db_name+".db")
-
-# # Plot the last 24 hours
-# plot = d.plot()
-# fig = plot.get_figure()
-# fig.savefig('static/plot_24_hours.png')
-#
-# # Fill the new values in the db
-# db_file_name = "test.db"
-# utils.fill_db(d, db_file_name)
-#
-# # Full plot from the start of the db content
-# db = sqlalchemy.create_engine('sqlite:///'+db_file_name)
-# new_d = pd.read_sql("data", db, index_col="index")
-# new_d.index.name=""
-# new_plot = new_d.plot()
-#
-# new_fig = new_plot.get_figure()
-# new_fig.savefig('static/plot_full.png')
+    output_db_name = "Count_"+db_name+".db"
+    utils.fill_counts(db_name, words, output_db_name=output_db_name)
+    # Plotting
+    db = sqlalchemy.create_engine('sqlite:///'+output_db_name)
+    d_full = pd.read_sql("data", db, index_col="index")
+    # Last 24 hours plot
+    time_cut = datetime.now() - timedelta(hours=25)
+    d_last_24_hours = d_full[d_full.index > str(time_cut)]
+    d_last_24_hours.index.name = ""
+    save_plot(d_last_24_hours, "plot_24_hours_"+db_name)
+    # Full plot from the start of the db content
+    d_full.index.name = ""
+    save_plot(d_full, "plot_full_"+db_name)
