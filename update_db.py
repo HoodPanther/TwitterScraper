@@ -14,8 +14,8 @@ def save_plot(d, file_name):
     fig.savefig('static/'+file_name+'.png')
 
 
-db_names = ["LNKD", "GILD"]
-searches = ['%23LNKD OR LNKD OR LinkedIn', '%23GILD OR GILD OR Gilead Sciences']
+db_names = ["LNKD", "GILD", "APPL"]
+searches = ['%23LNKD OR LNKD OR LinkedIn', '%23GILD OR GILD OR Gilead Sciences', '%23APPL OR APPL OR %23Apple']
 
 # Define which words to count occurrencies for
 words = ["up", "down", "good", "bad", "buy", "sell", "hold", "positive", "negative"]
