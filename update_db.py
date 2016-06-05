@@ -14,11 +14,14 @@ def save_plot(d, file_name):
     fig.savefig('static/'+file_name+'.png')
 
 
-db_names = ["LNKD", "GILD", "APPL"]
-searches = ['%23LNKD OR LNKD OR LinkedIn', '%23GILD OR GILD OR Gilead Sciences', '%23APPL OR APPL OR %23Apple']
+db_names = ["LNKD", "GILD"]
+# To build queries go to https://twitter.com/search, search (use OR for multiple keywords) and copy the
+# portion of the returned address after "q=".
+searches = ['%23LNKD%20OR%20LinkedIn', '%23GILD%20OR%20Gilead%20Sciences']
 
 # Define which words to count occurrencies for
-words = ["up", "down", "good", "bad", "buy", "sell", "hold", "positive", "negative"]
+# words = ["up", "down", "good", "bad", "buy", "sell", "hold", "positive", "negative"]
+words = ["up", "down", "good", "bad", "positive", "negative"]
 
 for db_name, search in zip(db_names, searches):
     os.system("python SearchAndStoreTweetsByKeywords.py "+db_name+" "+search)
