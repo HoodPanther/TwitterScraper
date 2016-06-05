@@ -18,8 +18,15 @@ from sqlalchemy.orm import sessionmaker
 
 from twython import Twython
 
+if len(sys.argv) < 3:
+    print "Error: please specify the db file name and the search query"
+    exit()
+
+db_name = sys.argv[1]
+
 # ids = ['%23GILD']  # enter your search terms
-ids = ['%23LNKD']  # enter your search terms
+# ids = ['%23LNKD']  # enter your search terms
+ids = [sys.argv[2]]
 
 # Read twitter app authentications
 secrets = open("secrets.txt").readlines()
@@ -188,7 +195,7 @@ def write_data(self, d):
         content = content.replace('\n', '')
         
         created_at_text = entry['created_at']     
-        created_at = datetime.strptime(created_at_text, '%a %b %d %H:%M:%S +0000 %Y')   
+        created_at = datetime.strptime(created_at_text, '%a %b %d %H:%M:%S +0000 %Y')
         # created_at2 = created_at.strftime('%Y-%m-%d %H:%M:%S')
     
         from_user_screen_name = entry['user']['screen_name']
@@ -337,8 +344,10 @@ def write_data(self, d):
       
 
 class Scrape:
-    def __init__(self):    
-        engine = sqlalchemy.create_engine("sqlite:///MH370.sqlite", echo=False)  
+    def __init__(self):
+        # timestr = str(datetime.now()).replace(" ", "_")
+        # engine = sqlalchemy.create_engine("sqlite:///"+db_name+"_"+timestr+".sqlite", echo=False)
+        engine = sqlalchemy.create_engine("sqlite:///"+db_name+".sqlite", echo=False)
         session = sessionmaker(bind=engine)
         self.session = session()
         Base.metadata.create_all(engine)
@@ -356,7 +365,7 @@ class Scrape:
                 print "THERE WERE NO STATUSES RETURNED........MOVING TO NEXT ID"
                 continue
                 
-            write_data(self, d) 
+            write_data(self, d)
 
             self.session.commit() 
                     

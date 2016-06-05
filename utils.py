@@ -2,42 +2,53 @@ import os
 import sqlite3
 import pandas as pd
 import sqlalchemy
+import utils
+from datetime import datetime, timedelta
 
 
-def select_count(file_name, selection):
+def select_count(file_name, word_selection, from_time, to_time):
     con = sqlite3.connect(file_name)
     cur = con.cursor()
-    query = "SELECT count(*) FROM hashtags WHERE "+selection+";"
+    selection = "WHERE created_at > '"+from_time+"' AND created_at <= '"+to_time+"' AND "+word_selection
+    # query = "SELECT count(*) FROM hashtags WHERE "+selection+";"
+    query = "SELECT count(*) FROM hashtags "+selection+";"
     count = cur.execute(query).fetchone()[0]
     con.close()
     return count
     
-    
-def build_dataframe(words):
+
+def query_time(file_name, find_oldest=False):
+    con = sqlite3.connect(file_name)
+    cur = con.cursor()
+    # query = "SELECT MAX(created_at) FROM hashtags;"
+    # The inserted_date is when the result is filled in the db. The first
+    # time is immediately after the query to Twitter.
+    query = "SELECT MIN(inserted_date) FROM hashtags;"
+    if find_oldest:
+        query = "SELECT MIN(created_at) FROM hashtags;"
+    most_recent = cur.execute(query).fetchone()[0]
+    con.close()
+    return most_recent
+
+
+def oldest_tweet_time(file_name):
+    return query_time(file_name, find_oldest=True)
+
+
+def build_dataframe(db_name, words, from_time, to_time):
+    file_name = db_name+".sqlite"
     word_counts = dict()
     for word in words:
         word_counts[word] = []
-    dates = []
 
-    file_list = [f for f in os.listdir(".") if (f.find("scrapeTwitter") != -1 and f.find(".sqlite") != -1)]
-    # ---------------------------------------------------------
-    # TODO: Check what is that empty symbol, it is not a space.
-    # ---------------------------------------------------------
-    for f in file_list:
-        # Sanitize windows file name
-        # file_name = f.replace('?', ' ')
-        # file_date = file_name.split("scrapeTwitter_")[1].split(".sqlite")[0].replace(' ', ':')
-        file_name = f
-        file_date = file_name.split("scrapeTwitter_")[1].split(".sqlite")[0]
-        file_date = file_date.replace('-', ' ').replace('_', '-')
-        dates.append(file_date)
-        # print "file date =", file_date
-        for word in word_counts:
-            selection = "content LIKE '% "+word+" %' AND content LIKE '%apple%'"
-            count = select_count(file_name, selection)
-            # print word, "=", count
-            word_counts[word].append(count)
-    return pd.DataFrame(data=word_counts, index=pd.DatetimeIndex(dates))
+    date_time = [to_time]
+    # print "file date =", file_date
+    for word in word_counts:
+        selection = "content LIKE '% "+word+" %'"
+        count = select_count(file_name, selection, from_time, to_time)
+        # print word, "=", count
+        word_counts[word].append(count)
+    return pd.DataFrame(data=word_counts, index=pd.DatetimeIndex(date_time))
 
 
 def fill_db(dataframe, db_file_name):
@@ -53,7 +64,7 @@ def fill_db(dataframe, db_file_name):
     file_exists = os.path.isfile(db_file_name)
     db = sqlalchemy.create_engine('sqlite:///'+db_file_name)
     if not file_exists:
-        d_schema = pd.io.sql.get_schema(d.reset_index(), 'data', keys='index')
+        d_schema = pd.io.sql.get_schema(dataframe.reset_index(), 'data', keys='index')
         db.execute(d_schema)
     # Append the new values to the table.
     num_rows = len(dataframe)
@@ -63,3 +74,28 @@ def fill_db(dataframe, db_file_name):
         except sqlalchemy.exc.IntegrityError:
             # print "skipping duplicate"
             pass
+
+
+def fill_counts(db_name, words, output_db_name):
+    # Note that this function requires at least one tweet in the db
+    previous_file_name = db_name + "_previous.sqlite"
+    file_name = db_name + ".sqlite"
+
+    start = datetime.strptime(utils.oldest_tweet_time(file_name), "%Y-%m-%d %H:%M:%S.%f")
+    if os.path.isfile(previous_file_name):
+        start = datetime.strptime(utils.query_time(previous_file_name), "%Y-%m-%d %H:%M:%S.%f")
+
+    finish = datetime.strptime(utils.query_time(file_name), "%Y-%m-%d %H:%M:%S.%f")
+    # elapsed_time = finish - start
+    # print "elapsed time in seconds =", elapsed_time.total_seconds()
+    # print "elapsed time in hours =", int(elapsed_time.total_seconds()/3600.)
+
+    current_hour = finish - timedelta(hours=2)
+
+    df = pd.DataFrame()
+    while current_hour > start:
+        df = df.append(build_dataframe(db_name, words, str(current_hour), str(current_hour+timedelta(hours=2))))
+        current_hour -= timedelta(hours=2)
+    fill_db(df, output_db_name)
+
+    os.system("mv " + file_name + " " + previous_file_name)
