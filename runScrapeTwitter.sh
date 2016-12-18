@@ -1,4 +1,4 @@
-cd /home/pi/ScrapeTwitter
+cd /home/pi/TwitterScraper
 echo "Running Twitter scraper at `date`" >> /tmp/pythonScraper.log
 # python SearchAndStoreTweetsByKeywords.py
 # python organizeFiles.py >> /tmp/pythonScraper.log

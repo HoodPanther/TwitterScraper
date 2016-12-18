@@ -119,12 +119,13 @@ def append_figures(figures_list, figure_type, figure_text):
 
 
 def build_page():
+    cwd = "/home/pi/TwitterScraper"
     content = """
     Twitter Scraper
     ===============
 
     """
-    figures_list = [x for x in os.listdir("./static/") if x.find(".png") != -1]
+    figures_list = [x for x in os.listdir(cwd+"/static/") if x.find(".png") != -1]
     for figure in figures_list:
         if figure.find("24_hours") != -1:
             figure_name = figure.strip("plot_24_hours").rstrip(".png")
