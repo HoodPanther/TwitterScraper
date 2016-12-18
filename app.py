@@ -1,5 +1,6 @@
 # import markdown
 from flaskext.markdown import Markdown
+# from flask.ext.misaka import Misaka
 from flask import Flask
 from flask import render_template
 # from flask import Markup
@@ -7,6 +8,7 @@ import utils
 
 app = Flask(__name__)
 Markdown(app)
+# Misaka(app)
 
 
 @app.route('/')

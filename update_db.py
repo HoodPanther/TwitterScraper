@@ -22,7 +22,8 @@ searches = ['%23GILD OR GILD OR Gilead Sciences', '%23FB OR FB OR Facebook', '%2
 # searches = ['%23CELG OR CELG OR Celgene']
 
 # Define which words to count occurrencies for
-words = ["up", "down", "good", "bad", "buy", "sell", "hold", "positive", "negative"]
+# words = ["up", "down", "good", "bad", "buy", "sell", "hold", "positive", "negative"]
+words = ["up", "down", "good", "bad", "positive", "negative"]
 
 for db_name, search in zip(db_names, searches):
     os.system("python SearchAndStoreTweetsByKeywords.py "+db_name+" "+search)
